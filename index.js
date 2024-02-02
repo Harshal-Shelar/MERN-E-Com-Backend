@@ -10,6 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+var updatedArray = [];
+
 app.post("/register", async (req, resp) => {
     let user = new User(req.body);
     let result = await user.save();
@@ -45,6 +47,11 @@ app.post("/add-product", async (req, resp) => {
     let product = new Product(req.body);
     let result = await product.save();
     resp.send(result);
+    console.log(result);
+    if (result) {
+        updatedArray = updatedArray.length + 1;
+        console.log(updatedArray.length + 1);
+    }
 });
 
 app.get("/products", async (req, resp) => {
@@ -75,7 +82,20 @@ app.put("/product/:id", async (req, resp) => {
         { _id: req.params.id },
         { $set: req.body }
     )
-    resp.send(result)
+    resp.send(result);
+    if (result.modifiedCount === 1) {
+        updatedArray.push(result);
+        console.log("updated array :- ", updatedArray);
+        console.log("updated array length :- ", updatedArray.length);
+
+    }
+});
+
+app.get('/notification', async (req, res) => {
+    let lengthOfArray = await updatedArray;
+
+    res.send(lengthOfArray);
+    console.log("updated array length :- ", updatedArray);
 });
 
 app.get("/search/:key", async (req, resp) => {
