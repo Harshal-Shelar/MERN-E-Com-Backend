@@ -47,10 +47,9 @@ app.post("/add-product", async (req, resp) => {
     let product = new Product(req.body);
     let result = await product.save();
     resp.send(result);
-    console.log(result);
     if (result) {
-        updatedArray = updatedArray.length + 1;
-        console.log(updatedArray.length + 1);
+        let lengthUp = updatedArray.length + 1;
+        console.log("add product :- ",lengthUp);
     }
 });
 
@@ -85,17 +84,11 @@ app.put("/product/:id", async (req, resp) => {
     resp.send(result);
     if (result.modifiedCount === 1) {
         updatedArray.push(result);
-        console.log("updated array :- ", updatedArray);
-        console.log("updated array length :- ", updatedArray.length);
-
     }
 });
 
 app.get('/notification', async (req, res) => {
-    let lengthOfArray = await updatedArray;
-
-    res.send(lengthOfArray);
-    console.log("updated array length :- ", updatedArray);
+    res.send(updatedArray);
 });
 
 app.get("/search/:key", async (req, resp) => {
