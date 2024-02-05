@@ -3,17 +3,21 @@ const cors = require("cors");
 require("./db/config");
 const User = require('./db/User');
 const Product = require("./db/Product")
+const Notification = require("./db/Notification")
 const Jwt = require('jsonwebtoken');
 const jwtKey = 'e-com';
 const app = express();
 
 app.use(express.json());
 app.use(cors());
-
+var loginUser;
 var updatedArray = [];
+var notOperation;
+var productId;
 
 app.post("/register", async (req, resp) => {
     let user = new User(req.body);
+    console.log("register user :- ", user);
     let result = await user.save();
     result = result.toObject();
     delete result.password
@@ -28,6 +32,8 @@ app.post("/register", async (req, resp) => {
 app.post("/login", async (req, resp) => {
     if (req.body.password && req.body.email) {
         let user = await User.findOne(req.body).select("-password");
+        loginUser = user;
+        console.log("login user :- ", user);
         if (user) {
             Jwt.sign({ user }, jwtKey, { expiresIn: "2h" }, (err, token) => {
                 if (err) {
@@ -46,11 +52,9 @@ app.post("/login", async (req, resp) => {
 app.post("/add-product", async (req, resp) => {
     let product = new Product(req.body);
     let result = await product.save();
-    resp.send(result);
-    if (result) {
-        let lengthUp = updatedArray.length + 1;
-        console.log("add product :- ",lengthUp);
-    }
+    productId =  result._id;
+    notOperation = "Data Added";
+    resp.send({result, notOperation, loginUser, productId});
 });
 
 app.get("/products", async (req, resp) => {
@@ -64,6 +68,8 @@ app.get("/products", async (req, resp) => {
 
 app.delete("/product/:id", async (req, resp) => {
     let result = await Product.deleteOne({ _id: req.params.id });
+    notOperation = "Data Deleted";
+    console.log(notOperation);
     resp.send(result)
 });
 
@@ -81,14 +87,24 @@ app.put("/product/:id", async (req, resp) => {
         { _id: req.params.id },
         { $set: req.body }
     )
-    resp.send(result);
-    if (result.modifiedCount === 1) {
-        updatedArray.push(result);
-    }
+    notOperation = "Data Updated";
+    productId = req.params.id;
+    resp.send({result, notOperation, productId});
 });
 
 app.get('/notification', async (req, res) => {
-    res.send(updatedArray);
+    const notifications = await Notification.find();
+    if (notifications.length > 0) {
+        res.send(notifications)
+    } else {
+        res.send({ result: "No Notification found" })
+    }
+});
+
+app.post('/add-notification', async (req, res) => {
+    let notifications = new Notification(req.body);
+    let result = await notifications.save();
+    res.send({result, notOperation, loginUser, productId});
 });
 
 app.get("/search/:key", async (req, resp) => {
