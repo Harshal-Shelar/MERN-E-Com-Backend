@@ -11,9 +11,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 var loginUser;
-var updatedArray = [];
-var notOperation;
 var productId;
+var notOperation;
 
 app.post("/register", async (req, resp) => {
     let user = new User(req.body);
@@ -53,7 +52,7 @@ app.post("/add-product", async (req, resp) => {
     let product = new Product(req.body);
     let result = await product.save();
     productId =  result._id;
-    notOperation = "Data Added";
+    notOperation = "Product Added";
     resp.send({result, notOperation, loginUser, productId});
 });
 
@@ -68,7 +67,7 @@ app.get("/products", async (req, resp) => {
 
 app.delete("/product/:id", async (req, resp) => {
     let result = await Product.deleteOne({ _id: req.params.id });
-    notOperation = "Data Deleted";
+    notOperation = "Product Deleted";
     console.log(notOperation);
     resp.send(result)
 });
@@ -87,7 +86,7 @@ app.put("/product/:id", async (req, resp) => {
         { _id: req.params.id },
         { $set: req.body }
     )
-    notOperation = "Data Updated";
+    notOperation = "Product Updated";
     productId = req.params.id;
     resp.send({result, notOperation, productId});
 });
@@ -100,6 +99,18 @@ app.get('/notification', async (req, res) => {
         res.send({ result: "No Notification found" })
     }
 });
+
+app.get("/category-list", async(req,res)=>{
+    const products = await Product.find();
+    const categories = products.map((x)=>{
+        return  x.category;
+    })
+    if (categories.length > 0) {
+        res.send(categories)
+    } else {
+        res.send({ result: "No Product found" })
+    }
+})
 
 app.post('/add-notification', async (req, res) => {
     let notifications = new Notification(req.body);
