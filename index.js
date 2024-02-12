@@ -3,7 +3,8 @@ const cors = require("cors");
 require("./db/config");
 const User = require('./db/User');
 const Product = require("./db/Product")
-const Notification = require("./db/Notification")
+const Notification = require("./db/Notification");
+const Orders = require("./db/Orders");
 const Jwt = require('jsonwebtoken');
 const jwtKey = 'e-com';
 const app = express();
@@ -117,6 +118,21 @@ app.post('/add-notification', async (req, res) => {
     let result = await notifications.save();
     res.send({result, notOperation, loginUser, productId});
 });
+
+app.post('/add-toCart', async (req, res) => {
+    let cartData = new Orders(req.body);
+    let result = await cartData.save();
+    res.send({result, loginUser});
+});
+
+app.get('/cart-list', async(req, res)=>{
+    let result = await Orders.find();
+    if (result) {
+        res.send(result)
+    } else {
+        res.send({ "result": "No Record Found." })
+    }
+})
 
 app.get("/search/:key", async (req, resp) => {
     let result = await Product.find({
