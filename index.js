@@ -5,6 +5,7 @@ const User = require('./db/User');
 const Product = require("./db/Product")
 const Notification = require("./db/Notification");
 const Orders = require("./db/Orders");
+const Address = require("./db/Address");
 const Jwt = require('jsonwebtoken');
 const jwtKey = 'e-com';
 const app = express();
@@ -56,6 +57,23 @@ app.post("/add-product", async (req, resp) => {
     notOperation = "Product Added";
     resp.send({result, notOperation, loginUser, productId});
 });
+
+app.post("/place-order", async (req, resp) => {
+    let address = new Address(req.body);
+    let result = await address.save();
+    productId =  result._id;
+    resp.send(result);
+});
+
+app.get("/get-order-details", async (req, resp) => {
+    const address = await Address.find();
+    if (address.length > 0) {
+        resp.send(address)
+    } else {
+        resp.send({ result: "No Product found" })
+    }
+});
+
 
 app.get("/products", async (req, resp) => {
     const products = await Product.find();
@@ -132,7 +150,14 @@ app.get('/cart-list', async(req, res)=>{
     } else {
         res.send({ "result": "No Record Found." })
     }
-})
+});
+
+app.delete("/cartDelete/:id", async (req, resp) => {
+    let result = await Orders.deleteOne({ _id: req.params.id });
+    notOperation = "Order Deleted";
+    console.log(notOperation);
+    resp.send(result)
+});
 
 app.get("/search/:key", async (req, resp) => {
     let result = await Product.find({
